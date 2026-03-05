@@ -49,8 +49,9 @@ class KaggleDownloader:
             text=True,
         )
         if result.returncode != 0:
+            detail = result.stderr.strip() or result.stdout.strip() or "(no output)"
             raise DataDownloadError(
-                f"Kaggle download failed for {kaggle_id}: {result.stderr}"
+                f"Kaggle download failed for {kaggle_id}: {detail}"
             )
         logger.info("Downloaded %s successfully", kaggle_id)
         return dest
@@ -72,8 +73,9 @@ class KaggleDownloader:
             text=True,
         )
         if result.returncode != 0:
+            detail = result.stderr.strip() or result.stdout.strip() or "(no output)"
             raise DataDownloadError(
-                f"Kaggle competition download failed for {competition}: {result.stderr}"
+                f"Kaggle competition download failed for {competition}: {detail}"
             )
         # competition은 zip으로 내려오므로 수동 해제 필요할 수 있음
         self._try_unzip(dest)

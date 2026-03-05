@@ -69,7 +69,7 @@ fraud_trans:
   seed_target: kafka
 
 chinook:
-  kaggle_id: ranasabrii/chinook-database-for-sql
+  kaggle_id: ranasabrii/chinook
   kaggle_type: dataset
   category: relational
   files:
@@ -89,7 +89,7 @@ euro_soccer:
   seed_target: sqlite
 
 northwind:
-  kaggle_id: ankitbansal06/northwind-traders
+  kaggle_id: jeetahirwar/northwind-traders
   kaggle_type: dataset
   category: relational
   files:
@@ -290,7 +290,7 @@ appliances_energy:
   seed_target: s3
 
 smart_mfg:
-  kaggle_id: machine-predictive-maintenance
+  kaggle_id: shivamb/machine-predictive-maintenance-classification
   kaggle_type: dataset
   category: iot
   files:

@@ -43,4 +43,4 @@ seed-quick:
 	python -m demiurge_testdata seed --essential --limit 10000 --skip-errors
 
 setup-data:
-	python -m demiurge_testdata setup --essential --limit 10000 --skip-errors
+	python -m demiurge_testdata setup --essential --limit 10000
