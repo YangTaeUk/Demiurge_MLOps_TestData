@@ -1,0 +1,366 @@
+# Demiurge MLOps TestData — Dataset Manifest
+# 32 Kaggle datasets across 6 categories
+# See docs/11-데이터-수집-시딩.md Section 3.1 for full specification
+
+# ── Relational (A1-A8) ──
+
+home_credit:
+  kaggle_id: home-credit-default-risk
+  kaggle_type: competition
+  category: relational
+  files:
+    - application_train.csv
+    - application_test.csv
+    - bureau.csv
+    - bureau_balance.csv
+    - previous_application.csv
+    - installments_payments.csv
+    - POS_CASH_balance.csv
+    - credit_card_balance.csv
+  primary_file: application_train.csv
+  record_count: 307511
+  seed_target: postgresql
+
+olist:
+  kaggle_id: olistbr/brazilian-ecommerce
+  kaggle_type: dataset
+  category: relational
+  files:
+    - olist_orders_dataset.csv
+    - olist_order_items_dataset.csv
+    - olist_products_dataset.csv
+    - olist_customers_dataset.csv
+    - olist_sellers_dataset.csv
+  primary_file: olist_orders_dataset.csv
+  record_count: 99441
+  seed_target: postgresql
+
+hm:
+  kaggle_id: h-and-m-personalized-fashion-recommendations
+  kaggle_type: competition
+  category: relational
+  files:
+    - transactions_train.csv
+    - articles.csv
+    - customers.csv
+  primary_file: transactions_train.csv
+  record_count: 31788324
+  seed_target: s3
+
+ga_store:
+  kaggle_id: google-analytics-store-revenue-prediction
+  kaggle_type: competition
+  category: relational
+  files:
+    - train_v2.csv
+  primary_file: train_v2.csv
+  record_count: 903653
+  seed_target: bigquery
+
+fraud_trans:
+  kaggle_id: kartik2112/fraud-detection
+  kaggle_type: dataset
+  category: relational
+  files:
+    - fraudTrain.csv
+    - fraudTest.csv
+  primary_file: fraudTrain.csv
+  record_count: 1296675
+  seed_target: kafka
+
+chinook:
+  kaggle_id: ranasabrii/chinook-database-for-sql
+  kaggle_type: dataset
+  category: relational
+  files:
+    - Chinook.sqlite
+  primary_file: Chinook.sqlite
+  record_count: 3503
+  seed_target: mysql
+
+euro_soccer:
+  kaggle_id: hugomathien/soccer
+  kaggle_type: dataset
+  category: relational
+  files:
+    - database.sqlite
+  primary_file: database.sqlite
+  record_count: 25979
+  seed_target: sqlite
+
+northwind:
+  kaggle_id: ankitbansal06/northwind-traders
+  kaggle_type: dataset
+  category: relational
+  files:
+    - orders.csv
+    - order-details.csv
+    - products.csv
+    - customers.csv
+  primary_file: orders.csv
+  record_count: 830
+  seed_target: postgresql
+
+# ── Document (B1-B6) ──
+
+instacart:
+  kaggle_id: instacart-market-basket-analysis
+  kaggle_type: competition
+  category: document
+  files:
+    - orders.csv
+    - order_products__prior.csv
+    - order_products__train.csv
+    - products.csv
+    - departments.csv
+    - aisles.csv
+  primary_file: orders.csv
+  record_count: 3421083
+  seed_target: mongodb
+
+tmdb:
+  kaggle_id: tmdb/tmdb-movie-metadata
+  kaggle_type: dataset
+  category: document
+  files:
+    - tmdb_5000_movies.csv
+    - tmdb_5000_credits.csv
+  primary_file: tmdb_5000_movies.csv
+  record_count: 4803
+  seed_target: mongodb
+
+airbnb:
+  kaggle_id: dgomonov/new-york-city-airbnb-open-data
+  kaggle_type: dataset
+  category: document
+  files:
+    - AB_NYC_2019.csv
+  primary_file: AB_NYC_2019.csv
+  record_count: 48895
+  seed_target: postgresql
+
+amazon_reviews:
+  kaggle_id: bittlingmayer/amazonreviews
+  kaggle_type: dataset
+  category: document
+  files:
+    - train.ft.txt.bz2
+  primary_file: train.ft.txt.bz2
+  record_count: 3600000
+  seed_target: elasticsearch
+
+yelp:
+  kaggle_id: yelp-dataset/yelp-dataset
+  kaggle_type: dataset
+  category: document
+  files:
+    - yelp_academic_dataset_business.json
+    - yelp_academic_dataset_review.json
+  primary_file: yelp_academic_dataset_business.json
+  record_count: 6990280
+  seed_target: mongodb
+
+foodcom:
+  kaggle_id: shuyangli94/food-com-recipes-and-user-interactions
+  kaggle_type: dataset
+  category: document
+  files:
+    - RAW_recipes.csv
+    - RAW_interactions.csv
+  primary_file: RAW_recipes.csv
+  record_count: 231637
+  seed_target: mongodb
+
+# ── Event (C1-C7) ──
+
+store_sales:
+  kaggle_id: store-sales-time-series-forecasting
+  kaggle_type: competition
+  category: event
+  files:
+    - train.csv
+  primary_file: train.csv
+  record_count: 3000888
+  seed_target: postgresql
+
+ieee_fraud:
+  kaggle_id: ieee-fraud-detection
+  kaggle_type: competition
+  category: event
+  files:
+    - train_transaction.csv
+    - train_identity.csv
+  primary_file: train_transaction.csv
+  record_count: 590540
+  seed_target: kafka
+
+twitter_sentiment:
+  kaggle_id: kazanova/sentiment140
+  kaggle_type: dataset
+  category: event
+  files:
+    - training.1600000.processed.noemoticon.csv
+  primary_file: training.1600000.processed.noemoticon.csv
+  record_count: 1600000
+  seed_target: nats
+
+cc_fraud:
+  kaggle_id: mlg-ulb/creditcardfraud
+  kaggle_type: dataset
+  category: event
+  files:
+    - creditcard.csv
+  primary_file: creditcard.csv
+  record_count: 284807
+  seed_target: elasticsearch
+
+clickstream:
+  kaggle_id: tunguz/clickstream-data-for-online-shopping
+  kaggle_type: dataset
+  category: event
+  files:
+    - clickstream.csv
+  primary_file: clickstream.csv
+  record_count: 285000000
+  seed_target: redis
+
+network_traffic:
+  kaggle_id: jsrojas/ip-network-traffic-flows-labeled-with-87-apps
+  kaggle_type: dataset
+  category: event
+  files:
+    - Dataset-Unicauca-Version2-87Atts.csv
+  primary_file: Dataset-Unicauca-Version2-87Atts.csv
+  record_count: 2700000
+  seed_target: kafka
+
+bitcoin:
+  kaggle_id: mczielinski/bitcoin-historical-data
+  kaggle_type: dataset
+  category: event
+  files:
+    - bitstampUSD_1-min_data_2012-01-01_to_2021-03-31.csv
+  primary_file: bitstampUSD_1-min_data_2012-01-01_to_2021-03-31.csv
+  record_count: 4857377
+  seed_target: kafka
+
+# ── IoT (D1-D5) ──
+
+bosch:
+  kaggle_id: bosch-production-line-performance
+  kaggle_type: competition
+  category: iot
+  files:
+    - train_numeric.csv.zip
+  primary_file: train_numeric.csv.zip
+  record_count: 1183747
+  seed_target: s3
+
+weather:
+  kaggle_id: selfishgene/historical-hourly-weather-data
+  kaggle_type: dataset
+  category: iot
+  files:
+    - temperature.csv
+    - humidity.csv
+    - pressure.csv
+    - wind_speed.csv
+  primary_file: temperature.csv
+  record_count: 45252
+  seed_target: kafka
+
+electric_power:
+  kaggle_id: uciml/electric-power-consumption-data-set
+  kaggle_type: dataset
+  category: iot
+  files:
+    - household_power_consumption.txt
+  primary_file: household_power_consumption.txt
+  record_count: 2075259
+  seed_target: postgresql
+
+appliances_energy:
+  kaggle_id: loveall/appliances-energy-prediction
+  kaggle_type: dataset
+  category: iot
+  files:
+    - energydata_complete.csv
+  primary_file: energydata_complete.csv
+  record_count: 19735
+  seed_target: s3
+
+smart_mfg:
+  kaggle_id: machine-predictive-maintenance
+  kaggle_type: dataset
+  category: iot
+  files:
+    - predictive_maintenance.csv
+  primary_file: predictive_maintenance.csv
+  record_count: 10000
+  seed_target: mqtt
+
+# ── Text (E1-E3) ──
+
+stackoverflow:
+  kaggle_id: stackoverflow/stacksample
+  kaggle_type: dataset
+  category: text
+  files:
+    - Questions.csv
+    - Answers.csv
+    - Tags.csv
+  primary_file: Questions.csv
+  record_count: 1264216
+  seed_target: elasticsearch
+
+enron_email:
+  kaggle_id: wcukierski/enron-email-dataset
+  kaggle_type: dataset
+  category: text
+  files:
+    - emails.csv
+  primary_file: emails.csv
+  record_count: 517401
+  seed_target: elasticsearch
+
+github_metadata:
+  kaggle_id: pelmers/github-repository-metadata-with-5-stars
+  kaggle_type: dataset
+  category: text
+  files:
+    - repo_metadata.csv
+  primary_file: repo_metadata.csv
+  record_count: 3000000
+  seed_target: mongodb
+
+# ── Geospatial (F1-F3) ──
+
+nyc_taxi:
+  kaggle_id: new-york-city-taxi-fare-prediction
+  kaggle_type: competition
+  category: geospatial
+  files:
+    - train.csv
+  primary_file: train.csv
+  record_count: 55423856
+  seed_target: postgresql
+
+geolife:
+  kaggle_id: arashnic/geolife-gps-trajectory-dataset
+  kaggle_type: dataset
+  category: geospatial
+  files:
+    - geolife_trajectories.csv
+  primary_file: geolife_trajectories.csv
+  record_count: 24876978
+  seed_target: mongodb
+
+dataco:
+  kaggle_id: shashwatwork/dataco-smart-supply-chain-for-big-data-analysis
+  kaggle_type: dataset
+  category: geospatial
+  files:
+    - DataCoSupplyChainDataset.csv
+  primary_file: DataCoSupplyChainDataset.csv
+  record_count: 180519
+  seed_target: s3

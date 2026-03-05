@@ -27,7 +27,9 @@ htmlcov/
 coverage.xml
 
 # Data files (Kaggle datasets — not committed)
-data/
+/data/raw/*
+!/data/raw/.gitkeep
+!/data/raw/.gitignore
 *.csv
 *.parquet
 *.avro

@@ -1,0 +1,4 @@
+# Ignore downloaded raw datasets (large files)
+*
+!.gitkeep
+!.gitignore

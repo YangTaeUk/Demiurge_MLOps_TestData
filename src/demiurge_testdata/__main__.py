@@ -5,8 +5,12 @@ from __future__ import annotations
 import argparse
 import asyncio
 import contextlib
+import logging
 import sys
 from pathlib import Path
+from typing import Any
+
+import yaml
 
 
 def _import_generators() -> None:
@@ -48,12 +52,26 @@ def cmd_run(args: argparse.Namespace) -> None:
     _import_adapters()
 
     from demiurge_testdata.core.pipeline import DataPipeline
-    from demiurge_testdata.core.registry import adapter_registry, generator_registry
+    from demiurge_testdata.core.registry import (
+        adapter_registry,
+        compression_registry,
+        format_registry,
+        generator_registry,
+    )
     from demiurge_testdata.handlers.chain import HandlerChain
 
     async def _run() -> None:
         generator = generator_registry.create(config.generator.type, config=config.generator)
-        handler_chain = HandlerChain(config.handler)
+        format_handler = format_registry.create(config.handler.format.value)
+        compression_handler = (
+            compression_registry.create(config.handler.compression.value)
+            if config.handler.compression.value != "none"
+            else None
+        )
+        handler_chain = HandlerChain(
+            format_handler=format_handler,
+            compression_handler=compression_handler,
+        )
         adapter = adapter_registry.create(config.adapter.type, **config.adapter.extra)
 
         pipeline = DataPipeline(
@@ -127,6 +145,165 @@ def cmd_serve(args: argparse.Namespace) -> None:
     uvicorn.run(app, host=args.host, port=args.port, log_level="info")
 
 
+logger = logging.getLogger(__name__)
+
+_MANIFEST_PATH = Path("configs/datasets/manifest.yaml")
+_DATA_DIR = Path("data/raw")
+
+# ── 핵심 필수 데이터셋 (빠른 테스트용) ──
+_ESSENTIAL_DATASETS = [
+    "chinook", "northwind", "tmdb", "airbnb", "cc_fraud",
+    "appliances_energy", "smart_mfg", "weather",
+]
+
+
+def _load_manifest(path: Path | None = None) -> dict[str, Any]:
+    """매니페스트 YAML 로드."""
+    manifest_path = path or _MANIFEST_PATH
+    if not manifest_path.exists():
+        print(f"Manifest not found: {manifest_path}")
+        sys.exit(1)
+    with open(manifest_path) as f:
+        return yaml.safe_load(f)
+
+
+def cmd_download(args: argparse.Namespace) -> None:
+    """Kaggle 데이터셋 다운로드"""
+    from demiurge_testdata.data.downloader import DataValidator, KaggleDownloader
+
+    manifest = _load_manifest(args.manifest)
+    downloader = KaggleDownloader(data_dir=_DATA_DIR)
+    validator = DataValidator(data_dir=_DATA_DIR)
+
+    targets = args.datasets or list(manifest.keys())
+    if args.essential:
+        targets = [d for d in _ESSENTIAL_DATASETS if d in manifest]
+    if args.category:
+        targets = [d for d in targets if manifest[d].get("category") == args.category]
+
+    for name in targets:
+        if name not in manifest:
+            print(f"  [SKIP] {name}: not in manifest")
+            continue
+
+        entry = manifest[name]
+        print(f"  Downloading {name} ({entry['kaggle_id']})...")
+        try:
+            downloader.download_from_manifest(entry, name)
+            result = validator.validate(name, entry)
+            status = "OK" if result.ok else f"WARN: {result.errors}"
+            print(f"  [{name}] {status}")
+        except Exception as exc:
+            print(f"  [{name}] FAILED: {exc}")
+            if not args.skip_errors:
+                sys.exit(1)
+
+
+def cmd_seed(args: argparse.Namespace) -> None:
+    """다운로드된 데이터를 인프라에 시딩"""
+    _import_adapters()
+
+    from demiurge_testdata.core.registry import (
+        compression_registry,
+        format_registry,
+    )
+    from demiurge_testdata.core.seed import SeedPipeline, load_csv_records
+    from demiurge_testdata.handlers.chain import HandlerChain
+
+    manifest = _load_manifest(args.manifest)
+
+    targets = args.datasets or list(manifest.keys())
+    if args.essential:
+        targets = [d for d in _ESSENTIAL_DATASETS if d in manifest]
+    if args.category:
+        targets = [d for d in targets if manifest[d].get("category") == args.category]
+
+    # 어댑터 설정 로드
+    adapter_config: dict[str, Any] = {}
+    if args.adapter_config:
+        with open(args.adapter_config) as f:
+            adapter_config = yaml.safe_load(f) or {}
+
+    async def _seed_all() -> None:
+        for name in targets:
+            if name not in manifest:
+                print(f"  [SKIP] {name}: not in manifest")
+                continue
+
+            entry = manifest[name]
+            seed_target = entry.get("seed_target", "postgresql")
+            primary = entry.get("primary_file")
+
+            if not primary:
+                print(f"  [SKIP] {name}: no primary_file defined")
+                continue
+
+            csv_path = _DATA_DIR / name / primary
+            if not csv_path.exists():
+                print(f"  [SKIP] {name}: {csv_path} not found (run download first)")
+                continue
+
+            # 시딩 대상별 어댑터 설정 결정
+            target_config = adapter_config.get(seed_target, {})
+            handler_chain = None
+
+            # Storage/Streaming 타겟은 HandlerChain 필요
+            if seed_target in ("s3", "hdfs", "local_fs"):
+                fmt = format_registry.create("parquet")
+                handler_chain = HandlerChain(format_handler=fmt, compression_handler=None)
+            elif seed_target in ("kafka", "nats", "rabbitmq", "mqtt"):
+                fmt = format_registry.create("json")
+                handler_chain = HandlerChain(format_handler=fmt, compression_handler=None)
+
+            pipeline = SeedPipeline(
+                adapter_type=seed_target,
+                adapter_config=target_config,
+                handler_chain=handler_chain,
+            )
+
+            print(f"  Seeding {name} → {seed_target}...")
+            try:
+                records = load_csv_records(csv_path, limit=args.limit)
+                category = entry.get("category", "relational")
+
+                if seed_target in ("postgresql", "mysql", "sqlite", "bigquery"):
+                    count = await pipeline.seed_rdbms(
+                        table=name, records=records, drop_existing=args.drop,
+                    )
+                elif seed_target in ("mongodb", "elasticsearch", "redis"):
+                    count = await pipeline.seed_nosql(
+                        collection=name, documents=records,
+                    )
+                elif seed_target in ("s3", "hdfs", "local_fs"):
+                    count = await pipeline.seed_storage(
+                        key=f"{category}/{name}.parquet", records=records,
+                    )
+                elif seed_target in ("kafka", "nats", "rabbitmq", "mqtt"):
+                    count = await pipeline.seed_streaming(
+                        topic=f"testdata.{name}", records=records,
+                    )
+                else:
+                    print(f"  [SKIP] {name}: unsupported seed_target '{seed_target}'")
+                    continue
+
+                print(f"  [{name}] {count} records seeded to {seed_target}")
+            except Exception as exc:
+                print(f"  [{name}] FAILED: {exc}")
+                if not args.skip_errors:
+                    raise
+
+    asyncio.run(_seed_all())
+
+
+def cmd_setup(args: argparse.Namespace) -> None:
+    """download + seed 원스톱 실행"""
+    # download
+    args.skip_errors = True
+    cmd_download(args)
+    # seed
+    cmd_seed(args)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="demiurge-testdata",
@@ -155,6 +332,37 @@ def main() -> None:
     serve_parser.add_argument("--host", default="0.0.0.0", help="Bind host")
     serve_parser.add_argument("--port", "-p", type=int, default=8000, help="Bind port")
 
+    # ── 데이터 수집·시딩 명령 ──
+
+    # download
+    dl_parser = subparsers.add_parser("download", help="Download datasets from Kaggle")
+    dl_parser.add_argument("datasets", nargs="*", help="Dataset names (default: all)")
+    dl_parser.add_argument("--manifest", type=Path, default=None, help="Manifest YAML path")
+    dl_parser.add_argument("--essential", action="store_true", help="Download essential datasets only")
+    dl_parser.add_argument("--category", choices=["relational", "document", "event", "iot", "text", "geospatial"])
+    dl_parser.add_argument("--skip-errors", action="store_true", help="Continue on download failure")
+
+    # seed
+    seed_parser = subparsers.add_parser("seed", help="Seed downloaded data into infrastructure")
+    seed_parser.add_argument("datasets", nargs="*", help="Dataset names (default: all)")
+    seed_parser.add_argument("--manifest", type=Path, default=None, help="Manifest YAML path")
+    seed_parser.add_argument("--essential", action="store_true", help="Seed essential datasets only")
+    seed_parser.add_argument("--category", choices=["relational", "document", "event", "iot", "text", "geospatial"])
+    seed_parser.add_argument("--adapter-config", type=Path, default=None, help="Adapter config YAML")
+    seed_parser.add_argument("--limit", type=int, default=None, help="Max records per dataset")
+    seed_parser.add_argument("--drop", action="store_true", help="Drop existing tables before seeding")
+    seed_parser.add_argument("--skip-errors", action="store_true", help="Continue on seed failure")
+
+    # setup (download + seed)
+    setup_parser = subparsers.add_parser("setup", help="Download + seed (one-stop)")
+    setup_parser.add_argument("datasets", nargs="*", help="Dataset names (default: all)")
+    setup_parser.add_argument("--manifest", type=Path, default=None, help="Manifest YAML path")
+    setup_parser.add_argument("--essential", action="store_true", help="Essential datasets only")
+    setup_parser.add_argument("--category", choices=["relational", "document", "event", "iot", "text", "geospatial"])
+    setup_parser.add_argument("--adapter-config", type=Path, default=None, help="Adapter config YAML")
+    setup_parser.add_argument("--limit", type=int, default=None, help="Max records per dataset")
+    setup_parser.add_argument("--drop", action="store_true", help="Drop existing tables before seeding")
+
     args = parser.parse_args()
 
     if args.command == "run":
@@ -163,6 +371,12 @@ def main() -> None:
         cmd_list(args)
     elif args.command == "serve":
         cmd_serve(args)
+    elif args.command == "download":
+        cmd_download(args)
+    elif args.command == "seed":
+        cmd_seed(args)
+    elif args.command == "setup":
+        cmd_setup(args)
     else:
         parser.print_help()
         sys.exit(1)

@@ -7,7 +7,12 @@ from typing import Any
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-from demiurge_testdata.core.registry import adapter_registry, generator_registry
+from demiurge_testdata.core.registry import (
+    adapter_registry,
+    compression_registry,
+    format_registry,
+    generator_registry,
+)
 
 app = FastAPI(
     title="Demiurge TestData API",
@@ -137,7 +142,16 @@ async def run_pipeline(request: PipelineRequest) -> PipelineResponse:
             format=request.format,
             compression=request.compression,
         )
-        handler_chain = HandlerChain(handler_config)
+        format_handler = format_registry.create(handler_config.format)
+        compression_handler = (
+            compression_registry.create(handler_config.compression)
+            if handler_config.compression != "none"
+            else None
+        )
+        handler_chain = HandlerChain(
+            format_handler=format_handler,
+            compression_handler=compression_handler,
+        )
 
         # Build adapter
         adapter = adapter_registry.create(request.adapter, **request.adapter_config)

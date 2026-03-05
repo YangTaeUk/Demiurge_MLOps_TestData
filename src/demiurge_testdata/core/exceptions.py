@@ -48,3 +48,28 @@ class AdapterError(TestDataError):
 
 class GeneratorError(TestDataError):
     """제너레이터 데이터 생성 에러"""
+
+
+# ── 데이터 수집·시딩 예외 ──
+
+
+class DataDownloadError(TestDataError):
+    """Kaggle API 다운로드 실패"""
+
+
+class SchemaInferenceError(TestDataError):
+    """CSV 컬럼 타입 추론 실패"""
+
+
+class BulkInsertError(AdapterError):
+    """대량 삽입 실패 (재시도 가능)"""
+
+    def __init__(self, adapter: str, table: str, batch_index: int, cause: Exception):
+        self.adapter = adapter
+        self.table = table
+        self.batch_index = batch_index
+        self.cause = cause
+        super().__init__(
+            f"{adapter}: bulk insert failed on {table} "
+            f"(batch #{batch_index}): {cause}"
+        )
