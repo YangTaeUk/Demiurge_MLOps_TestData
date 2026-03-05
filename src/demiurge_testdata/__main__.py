@@ -6,6 +6,7 @@ import argparse
 import asyncio
 import contextlib
 import logging
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -16,6 +17,28 @@ import yaml
 def _import_generators() -> None:
     """모든 제너레이터를 import하여 레지스트리에 등록"""
     from demiurge_testdata.generators import document, event, geospatial, iot, relational, text  # noqa: F401  # isort: skip
+
+
+def _import_handlers() -> None:
+    """포맷/압축 핸들러를 import하여 레지스트리에 등록"""
+    import importlib
+
+    handler_modules = [
+        "demiurge_testdata.handlers.formats.json_handler",
+        "demiurge_testdata.handlers.formats.jsonl_handler",
+        "demiurge_testdata.handlers.formats.csv_handler",
+        "demiurge_testdata.handlers.formats.parquet_handler",
+        "demiurge_testdata.handlers.formats.avro_handler",
+        "demiurge_testdata.handlers.formats.orc_handler",
+        "demiurge_testdata.handlers.formats.msgpack_handler",
+        "demiurge_testdata.handlers.formats.arrow_handler",
+        "demiurge_testdata.handlers.formats.xml_handler",
+        "demiurge_testdata.handlers.formats.yaml_handler",
+        "demiurge_testdata.handlers.compression.cramjam_handler",
+    ]
+    for mod in handler_modules:
+        with contextlib.suppress(ImportError):
+            importlib.import_module(mod)
 
 
 def _import_adapters() -> None:
@@ -202,6 +225,7 @@ def cmd_download(args: argparse.Namespace) -> None:
 def cmd_seed(args: argparse.Namespace) -> None:
     """다운로드된 데이터를 인프라에 시딩"""
     _import_adapters()
+    _import_handlers()
 
     from demiurge_testdata.core.registry import (
         compression_registry,
@@ -218,11 +242,21 @@ def cmd_seed(args: argparse.Namespace) -> None:
     if args.category:
         targets = [d for d in targets if manifest[d].get("category") == args.category]
 
-    # 어댑터 설정 로드
-    adapter_config: dict[str, Any] = {}
+    # 어댑터 설정 로드 (.env 기본값 → 파일 오버라이드)
+    _default_config: dict[str, Any] = {
+        "postgresql": {"host": "localhost", "port": int(os.environ.get("PG_PORT", 5434)),
+                       "user": "testdata", "password": "testdata_dev", "database": "testdata"},
+        "mongodb": {"host": "localhost", "port": int(os.environ.get("MONGO_PORT", 27017)),
+                    "username": "testdata", "password": "testdata_dev", "database": "testdata"},
+        "kafka": {"bootstrap_servers": f"localhost:{os.environ.get('KAFKA_PORT', 9092)}"},
+        "s3": {"endpoint_url": f"http://localhost:{os.environ.get('MINIO_API_PORT', 9002)}",
+               "access_key": "minioadmin", "secret_key": "minioadmin", "bucket": "testdata"},
+    }
+    adapter_config: dict[str, Any] = dict(_default_config)
     if args.adapter_config:
         with open(args.adapter_config) as f:
-            adapter_config = yaml.safe_load(f) or {}
+            overrides = yaml.safe_load(f) or {}
+            adapter_config.update(overrides)
 
     async def _seed_all() -> None:
         for name in targets:
