@@ -95,7 +95,7 @@ services:
       - testdata
 
   elasticsearch:
-    image: elasticsearch:8.13.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.0.0
     ports:
       - "${ES_PORT:-9200}:9200"
     environment:
