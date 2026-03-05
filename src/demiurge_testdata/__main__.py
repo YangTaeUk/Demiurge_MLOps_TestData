@@ -245,24 +245,24 @@ def cmd_seed(args: argparse.Namespace) -> None:
 
             # 시딩 대상별 어댑터 설정 결정
             target_config = adapter_config.get(seed_target, {})
-            handler_chain = None
-
-            # Storage/Streaming 타겟은 HandlerChain 필요
-            if seed_target in ("s3", "hdfs", "local_fs"):
-                fmt = format_registry.create("parquet")
-                handler_chain = HandlerChain(format_handler=fmt, compression_handler=None)
-            elif seed_target in ("kafka", "nats", "rabbitmq", "mqtt"):
-                fmt = format_registry.create("json")
-                handler_chain = HandlerChain(format_handler=fmt, compression_handler=None)
-
-            pipeline = SeedPipeline(
-                adapter_type=seed_target,
-                adapter_config=target_config,
-                handler_chain=handler_chain,
-            )
 
             print(f"  Seeding {name} → {seed_target}...")
             try:
+                handler_chain = None
+
+                # Storage/Streaming 타겟은 HandlerChain 필요
+                if seed_target in ("s3", "hdfs", "local_fs"):
+                    fmt = format_registry.create("parquet")
+                    handler_chain = HandlerChain(format_handler=fmt, compression_handler=None)
+                elif seed_target in ("kafka", "nats", "rabbitmq", "mqtt"):
+                    fmt = format_registry.create("json")
+                    handler_chain = HandlerChain(format_handler=fmt, compression_handler=None)
+
+                pipeline = SeedPipeline(
+                    adapter_type=seed_target,
+                    adapter_config=target_config,
+                    handler_chain=handler_chain,
+                )
                 records = load_csv_records(csv_path, limit=args.limit)
                 category = entry.get("category", "relational")
 
