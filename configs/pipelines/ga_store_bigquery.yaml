@@ -1,0 +1,16 @@
+name: ga_store_to_bigquery
+mode: batch
+generator:
+  type: ga_store
+  batch_size: 5000
+handler:
+  format: json
+  compression: none
+adapter:
+  type: bigquery
+  host: localhost
+  port: 443
+  extra:
+    project_id: my-project
+    dataset_id: testdata
+    table_id: ga_store_events

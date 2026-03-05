@@ -1,0 +1,15 @@
+name: twitter_sentiment_to_nats
+mode: stream
+generator:
+  type: twitter_sentiment
+  batch_size: 1000
+  stream_interval_ms: 10
+handler:
+  format: json
+  compression: none
+adapter:
+  type: nats
+  host: localhost
+  port: 4222
+  extra:
+    subject: twitter.sentiment

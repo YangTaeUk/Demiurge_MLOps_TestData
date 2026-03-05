@@ -1,0 +1,14 @@
+name: euro_soccer_to_sqlite
+mode: batch
+generator:
+  type: euro_soccer
+  batch_size: 5000
+handler:
+  format: json
+  compression: none
+adapter:
+  type: sqlite
+  host: localhost
+  port: 0
+  extra:
+    database: /tmp/euro_soccer.db

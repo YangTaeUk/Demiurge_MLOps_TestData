@@ -1,0 +1,14 @@
+name: cc_fraud_to_elasticsearch
+mode: batch
+generator:
+  type: cc_fraud
+  batch_size: 5000
+handler:
+  format: json
+  compression: none
+adapter:
+  type: elasticsearch
+  host: localhost
+  port: 9200
+  extra:
+    index: cc-fraud-events

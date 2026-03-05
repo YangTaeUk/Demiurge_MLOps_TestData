@@ -1,0 +1,16 @@
+name: olist_to_postgresql
+mode: batch
+generator:
+  type: olist
+  batch_size: 10000
+handler:
+  format: csv
+  compression: gzip
+adapter:
+  type: postgresql
+  host: localhost
+  port: 5434
+  extra:
+    user: testdata
+    password: testdata_dev
+    database: testdata

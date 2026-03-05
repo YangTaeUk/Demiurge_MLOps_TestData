@@ -1,0 +1,15 @@
+name: fraud_trans_to_kafka
+mode: stream
+generator:
+  type: fraud_trans
+  batch_size: 1000
+  stream_interval_ms: 10
+handler:
+  format: json
+  compression: none
+adapter:
+  type: kafka
+  host: localhost
+  port: 9092
+  extra:
+    topic: fraud-transactions

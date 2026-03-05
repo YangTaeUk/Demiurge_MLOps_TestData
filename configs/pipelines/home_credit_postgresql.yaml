@@ -1,0 +1,16 @@
+name: home_credit_to_postgresql
+mode: batch
+generator:
+  type: home_credit
+  batch_size: 10000
+handler:
+  format: json
+  compression: none
+adapter:
+  type: postgresql
+  host: localhost
+  port: 5434
+  extra:
+    user: testdata
+    password: testdata_dev
+    database: testdata

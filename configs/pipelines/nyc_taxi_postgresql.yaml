@@ -1,0 +1,16 @@
+name: nyc_taxi_to_postgresql
+mode: batch
+generator:
+  type: nyc_taxi
+  batch_size: 50000
+handler:
+  format: json
+  compression: none
+adapter:
+  type: postgresql
+  host: localhost
+  port: 5434
+  extra:
+    user: testdata
+    password: testdata_dev
+    database: testdata

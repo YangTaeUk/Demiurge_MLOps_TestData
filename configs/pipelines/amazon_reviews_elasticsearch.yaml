@@ -1,0 +1,14 @@
+name: amazon_reviews_to_elasticsearch
+mode: batch
+generator:
+  type: amazon_reviews
+  batch_size: 5000
+handler:
+  format: json
+  compression: none
+adapter:
+  type: elasticsearch
+  host: localhost
+  port: 9200
+  extra:
+    index: amazon-reviews

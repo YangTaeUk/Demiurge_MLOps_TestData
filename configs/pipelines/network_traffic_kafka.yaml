@@ -1,0 +1,15 @@
+name: network_traffic_to_kafka
+mode: stream
+generator:
+  type: network_traffic
+  batch_size: 2000
+  stream_interval_ms: 5
+handler:
+  format: json
+  compression: lz4
+adapter:
+  type: kafka
+  host: localhost
+  port: 9092
+  extra:
+    topic: network-traffic

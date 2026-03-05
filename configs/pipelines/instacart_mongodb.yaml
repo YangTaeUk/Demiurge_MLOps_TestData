@@ -1,0 +1,16 @@
+name: instacart_to_mongodb
+mode: batch
+generator:
+  type: instacart
+  batch_size: 5000
+handler:
+  format: json
+  compression: none
+adapter:
+  type: mongodb
+  host: localhost
+  port: 27017
+  extra:
+    username: testdata
+    password: testdata_dev
+    database: testdata

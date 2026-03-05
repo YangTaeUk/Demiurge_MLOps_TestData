@@ -1,0 +1,88 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "demiurge-testdata"
+version = "0.1.0"
+description = "Demiurge MLOps TestData — 인프라 한계를 시험하는 범용 테스트 데이터 프레임워크"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+    "pydantic>=2.0",
+    "pydantic-settings>=2.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+handlers = ["orjson", "cramjam", "msgspec"]
+formats = ["pyarrow", "fastavro", "lxml"]
+rdbms = [
+    "asyncpg",
+    "sqlalchemy[asyncio]",
+    "aiomysql",
+    "aioodbc",
+    "oracledb",
+    "aiosqlite",
+    "google-cloud-bigquery",
+]
+nosql = [
+    "motor",
+    "elasticsearch[async]",
+    "redis[hiredis]",
+    "cassandra-driver",
+]
+streaming = [
+    "faststream[kafka,rabbit,nats]",
+    "aiomqtt",
+    "pulsar-client",
+]
+storage = ["fsspec", "s3fs", "universal-pathlib"]
+filetransfer = ["fsspec", "paramiko"]
+api = ["grpcio", "grpcio-tools", "protobuf", "fastapi", "uvicorn"]
+all = [
+    "demiurge-testdata[handlers,formats,rdbms,nosql,streaming,storage,filetransfer,api]",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.8",
+    "testcontainers[postgres,mongodb,kafka,redis,elasticsearch,rabbitmq,nats,minio]",
+    "polyfactory",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/demiurge_testdata"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = [
+    "integration: requires Docker services (deselect with '-m \"not integration\"')",
+    "testcontainers: requires Docker for testcontainers-managed services",
+    "benchmark: performance benchmark tests",
+    "slow: tests that take > 30 seconds",
+]
+addopts = "-m 'not integration' --import-mode=importlib"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+    "RUF", # ruff-specific
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/integration/*.py" = ["E402"]  # imports after pytest.importorskip()
+
+[tool.ruff.lint.isort]
+known-first-party = ["demiurge_testdata"]

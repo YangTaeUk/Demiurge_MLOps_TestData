@@ -1,0 +1,17 @@
+name: appliances_energy_to_s3
+mode: batch
+generator:
+  type: appliances_energy
+  batch_size: 5000
+handler:
+  format: json
+  compression: gzip
+adapter:
+  type: s3
+  host: localhost
+  port: 9000
+  extra:
+    endpoint: http://localhost:9000
+    bucket: testdata
+    access_key: testdata
+    secret_key: testdata_dev_password

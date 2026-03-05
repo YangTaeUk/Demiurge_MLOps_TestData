@@ -1,0 +1,16 @@
+name: airbnb_to_postgresql
+mode: batch
+generator:
+  type: airbnb
+  batch_size: 5000
+handler:
+  format: json
+  compression: none
+adapter:
+  type: postgresql
+  host: localhost
+  port: 5434
+  extra:
+    user: testdata
+    password: testdata_dev
+    database: testdata

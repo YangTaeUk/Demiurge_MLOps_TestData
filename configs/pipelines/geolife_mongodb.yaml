@@ -1,0 +1,16 @@
+name: geolife_to_mongodb
+mode: batch
+generator:
+  type: geolife
+  batch_size: 10000
+handler:
+  format: json
+  compression: none
+adapter:
+  type: mongodb
+  host: localhost
+  port: 27017
+  extra:
+    username: testdata
+    password: testdata_dev
+    database: testdata

@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package testdata.v1;
+
+// 테스트 데이터 생성 서비스
+service TestDataService {
+  // 배치 데이터 생성 요청
+  rpc GenerateBatch(GenerateBatchRequest) returns (GenerateBatchResponse);
+
+  // 스트림 데이터 생성 (서버 → 클라이언트 스트리밍)
+  rpc GenerateStream(GenerateStreamRequest) returns (stream DataRecord);
+
+  // 등록된 제너레이터 목록 조회
+  rpc ListGenerators(ListGeneratorsRequest) returns (ListGeneratorsResponse);
+
+  // 등록된 어댑터 목록 조회
+  rpc ListAdapters(ListAdaptersRequest) returns (ListAdaptersResponse);
+
+  // 헬스 체크
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+message GenerateBatchRequest {
+  string generator_key = 1;
+  int32 batch_size = 2;
+  string format = 3;       // json, csv, parquet, etc.
+  string compression = 4;  // none, gzip, snappy, etc.
+}
+
+message GenerateBatchResponse {
+  bytes data = 1;
+  int32 record_count = 2;
+  string format = 3;
+  string compression = 4;
+  double elapsed_seconds = 5;
+}
+
+message GenerateStreamRequest {
+  string generator_key = 1;
+  int32 max_records = 2;
+  string format = 3;
+}
+
+message DataRecord {
+  bytes payload = 1;
+  int64 sequence = 2;
+  string format = 3;
+}
+
+message ListGeneratorsRequest {}
+
+message ListGeneratorsResponse {
+  repeated ComponentInfo generators = 1;
+}
+
+message ListAdaptersRequest {}
+
+message ListAdaptersResponse {
+  repeated ComponentInfo adapters = 1;
+}
+
+message ComponentInfo {
+  string key = 1;
+  string class_name = 2;
+  string module = 3;
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+  bool healthy = 1;
+  string version = 2;
+}

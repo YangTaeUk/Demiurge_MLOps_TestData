@@ -1,0 +1,16 @@
+name: chinook_to_mysql
+mode: batch
+generator:
+  type: chinook
+  batch_size: 5000
+handler:
+  format: json
+  compression: none
+adapter:
+  type: mysql
+  host: localhost
+  port: 3306
+  extra:
+    user: testdata
+    password: testdata_dev
+    database: testdata

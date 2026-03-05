@@ -1,0 +1,15 @@
+name: clickstream_to_redis
+mode: stream
+generator:
+  type: clickstream
+  batch_size: 1000
+  stream_interval_ms: 5
+handler:
+  format: json
+  compression: none
+adapter:
+  type: redis
+  host: localhost
+  port: 6379
+  extra:
+    collection: clickstream

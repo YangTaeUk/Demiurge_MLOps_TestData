@@ -1,0 +1,14 @@
+name: enron_email_to_elasticsearch
+mode: batch
+generator:
+  type: enron_email
+  batch_size: 3000
+handler:
+  format: json
+  compression: none
+adapter:
+  type: elasticsearch
+  host: localhost
+  port: 9200
+  extra:
+    index: enron-emails
