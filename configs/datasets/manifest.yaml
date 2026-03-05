@@ -300,7 +300,7 @@ smart_mfg:
     - predictive_maintenance.csv
   primary_file: predictive_maintenance.csv
   record_count: 10000
-  seed_target: mqtt
+  seed_target: kafka
 
 # ── Text (E1-E3) ──
 
