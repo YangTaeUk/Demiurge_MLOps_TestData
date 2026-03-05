@@ -250,7 +250,9 @@ def cmd_seed(args: argparse.Namespace) -> None:
                     "username": "testdata", "password": "testdata_dev", "database": "testdata"},
         "kafka": {"bootstrap_servers": f"localhost:{os.environ.get('KAFKA_PORT', 9092)}"},
         "s3": {"endpoint_url": f"http://localhost:{os.environ.get('MINIO_API_PORT', 9002)}",
-               "access_key": "minioadmin", "secret_key": "minioadmin", "bucket": "testdata"},
+               "access_key": os.environ.get("MINIO_ROOT_USER", "testdata"),
+               "secret_key": os.environ.get("MINIO_ROOT_PASSWORD", "testdata_dev_password"),
+               "bucket": "testdata"},
     }
     adapter_config: dict[str, Any] = dict(_default_config)
     if args.adapter_config:
