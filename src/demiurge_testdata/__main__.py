@@ -231,7 +231,7 @@ def cmd_seed(args: argparse.Namespace) -> None:
         compression_registry,
         format_registry,
     )
-    from demiurge_testdata.core.seed import SeedPipeline, load_csv_records
+    from demiurge_testdata.core.seed import SeedPipeline, load_csv_records, load_sqlite_records
     from demiurge_testdata.handlers.chain import HandlerChain
 
     manifest = _load_manifest(args.manifest)
@@ -250,8 +250,7 @@ def cmd_seed(args: argparse.Namespace) -> None:
                     "username": "testdata", "password": "testdata_dev", "database": "testdata"},
         "mysql": {"host": "localhost", "user": "testdata", "password": "testdata_dev",
                   "database": "testdata"},
-        "elasticsearch": {"host": "localhost",
-                          "port": int(os.environ.get("ES_PORT", 9200))},
+        "elasticsearch": {"host": "localhost"},
         "kafka": {"bootstrap_servers": f"localhost:{os.environ.get('KAFKA_PORT', 9092)}"},
         "mqtt": {"host": "localhost", "port": int(os.environ.get("MQTT_PORT", 1883))},
         "s3": {"endpoint": f"http://localhost:{os.environ.get('MINIO_API_PORT', 9002)}",
@@ -304,7 +303,10 @@ def cmd_seed(args: argparse.Namespace) -> None:
                     adapter_config=target_config,
                     handler_chain=handler_chain,
                 )
-                records = load_csv_records(csv_path, limit=args.limit)
+                if csv_path.suffix == ".sqlite":
+                    records = load_sqlite_records(csv_path, limit=args.limit)
+                else:
+                    records = load_csv_records(csv_path, limit=args.limit)
                 category = entry.get("category", "relational")
 
                 if seed_target in ("postgresql", "mysql", "sqlite", "bigquery"):

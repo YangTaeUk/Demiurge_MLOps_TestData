@@ -63,6 +63,47 @@ def _read_csv(
     return records
 
 
+def load_sqlite_records(
+    path: Path,
+    *,
+    limit: int | None = None,
+    table: str | None = None,
+) -> list[dict[str, Any]]:
+    """SQLite 파일에서 레코드를 읽어 list[dict]로 반환한다.
+
+    Args:
+        path: SQLite 파일 경로
+        limit: 최대 읽을 행 수
+        table: 읽을 테이블명 (None이면 가장 큰 테이블 자동 선택)
+    """
+    import sqlite3
+
+    conn = sqlite3.connect(str(path))
+    conn.row_factory = sqlite3.Row
+    try:
+        if table is None:
+            # 가장 행이 많은 테이블 선택
+            cur = conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+            )
+            tables = [r[0] for r in cur.fetchall()]
+            if not tables:
+                return []
+            best, best_count = tables[0], 0
+            for t in tables:
+                cnt = conn.execute(f"SELECT COUNT(*) FROM [{t}]").fetchone()[0]  # noqa: S608
+                if cnt > best_count:
+                    best, best_count = t, cnt
+            table = best
+
+        limit_clause = f" LIMIT {limit}" if limit else ""
+        cur = conn.execute(f"SELECT * FROM [{table}]{limit_clause}")  # noqa: S608
+        rows = cur.fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        conn.close()
+
+
 # ── 스키마 추론 ──
 
 
