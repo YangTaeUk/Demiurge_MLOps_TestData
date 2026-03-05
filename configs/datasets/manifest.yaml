@@ -75,7 +75,7 @@ chinook:
   files:
     - Chinook_Sqlite.sqlite
   primary_file: Chinook_Sqlite.sqlite
-  record_count: 3503
+  record_count: 13451
   seed_target: mysql
 
 euro_soccer:
@@ -287,8 +287,8 @@ appliances_energy:
   kaggle_type: dataset
   category: iot
   files:
-    - energydata_complete.csv
-  primary_file: energydata_complete.csv
+    - KAG_energydata_complete.csv
+  primary_file: KAG_energydata_complete.csv
   record_count: 19735
   seed_target: s3
 
