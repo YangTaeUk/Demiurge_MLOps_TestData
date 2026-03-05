@@ -77,7 +77,13 @@ class ElasticsearchAdapter(BaseNoSQLAdapter):
             operations.append({"index": {"_index": collection}})
             operations.append(doc)
         result = await self._client.bulk(operations=operations)
-        return len(documents) - len(result.get("errors", []))
+        if result.get("errors"):
+            failed = sum(
+                1 for item in result.get("items", [])
+                if "error" in item.get("index", {})
+            )
+            return len(documents) - failed
+        return len(documents)
 
     async def query_documents(
         self,
