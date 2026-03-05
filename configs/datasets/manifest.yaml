@@ -73,8 +73,8 @@ chinook:
   kaggle_type: dataset
   category: relational
   files:
-    - Chinook.sqlite
-  primary_file: Chinook.sqlite
+    - Chinook_Sqlite.sqlite
+  primary_file: Chinook_Sqlite.sqlite
   record_count: 3503
   seed_target: mysql
 
@@ -94,9 +94,12 @@ northwind:
   category: relational
   files:
     - orders.csv
-    - order-details.csv
+    - order_details.csv
     - products.csv
     - customers.csv
+    - categories.csv
+    - employees.csv
+    - shippers.csv
   primary_file: orders.csv
   record_count: 830
   seed_target: postgresql
