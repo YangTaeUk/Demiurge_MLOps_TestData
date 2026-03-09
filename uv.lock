@@ -39,6 +39,24 @@ wheels = [
 ]
 
 [[package]]
+name = "aiofiles"
+version = "25.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/41/c3/534eac40372d8ee36ef40df62ec129bee4fdb5ad9706e58a29be53b2c970/aiofiles-25.1.0.tar.gz", hash = "sha256:a8d728f0a29de45dc521f18f07297428d56992a742f0cd2701ba86e44d23d5b2", size = 46354, upload-time = "2025-10-09T20:51:04.358Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bc/8a/340a1555ae33d7354dbca4faa54948d76d89a27ceef032c8c3bc661d003e/aiofiles-25.1.0-py3-none-any.whl", hash = "sha256:abe311e527c862958650f9438e859c1fa7568a141b22abcd015e120e86a85695", size = 14668, upload-time = "2025-10-09T20:51:03.174Z" },
+]
+
+[[package]]
+name = "aioftp"
+version = "0.27.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/cc/a3/d1af4b69c09dc9955fdb329de5a9ea73f6a3ba50ac4861882453254ffa99/aioftp-0.27.2.tar.gz", hash = "sha256:7c048c3220081796c59832a6fd9fd8fad97e3cec12a50be3abccf2dcbbeb261a", size = 70248, upload-time = "2025-09-24T21:51:31.297Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7c/6c/d56c290696f91c4f0fa4be7cfdb38e710d9735c10c57e481cd4bd6066506/aioftp-0.27.2-py3-none-any.whl", hash = "sha256:83befd4091be0e26eeba44dadebb7e7bea653f7b6bda3ba9b6785d4372a93e10", size = 44292, upload-time = "2025-09-24T21:51:29.448Z" },
+]
+
+[[package]]
 name = "aiohappyeyeballs"
 version = "2.6.1"
 source = { registry = "https://pypi.org/simple" }
@@ -852,6 +870,10 @@ dependencies = [
 
 [package.optional-dependencies]
 all = [
+    { name = "aio-pika" },
+    { name = "aiofiles" },
+    { name = "aioftp" },
+    { name = "aiokafka" },
     { name = "aiomqtt" },
     { name = "aiomysql" },
     { name = "aioodbc" },
@@ -862,7 +884,6 @@ all = [
     { name = "elasticsearch", extra = ["async"] },
     { name = "fastapi" },
     { name = "fastavro" },
-    { name = "faststream", extra = ["kafka", "nats", "rabbit"] },
     { name = "fsspec" },
     { name = "google-cloud-bigquery" },
     { name = "grpcio" },
@@ -870,6 +891,8 @@ all = [
     { name = "lxml" },
     { name = "motor" },
     { name = "msgspec" },
+    { name = "nats-py" },
+    { name = "openpyxl" },
     { name = "oracledb" },
     { name = "orjson" },
     { name = "paramiko" },
@@ -896,7 +919,11 @@ dev = [
     { name = "ruff" },
     { name = "testcontainers", extra = ["minio", "mongodb", "nats", "rabbitmq", "redis"] },
 ]
+excel = [
+    { name = "openpyxl" },
+]
 filetransfer = [
+    { name = "aioftp" },
     { name = "fsspec" },
     { name = "paramiko" },
 ]
@@ -926,18 +953,25 @@ rdbms = [
     { name = "sqlalchemy", extra = ["asyncio"] },
 ]
 storage = [
+    { name = "aiofiles" },
     { name = "fsspec" },
     { name = "s3fs" },
     { name = "universal-pathlib" },
 ]
 streaming = [
+    { name = "aio-pika" },
+    { name = "aiokafka" },
     { name = "aiomqtt" },
-    { name = "faststream", extra = ["kafka", "nats", "rabbit"] },
+    { name = "nats-py" },
     { name = "pulsar-client" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "aio-pika", marker = "extra == 'streaming'" },
+    { name = "aiofiles", marker = "extra == 'storage'" },
+    { name = "aioftp", marker = "extra == 'filetransfer'" },
+    { name = "aiokafka", marker = "extra == 'streaming'" },
     { name = "aiomqtt", marker = "extra == 'streaming'" },
     { name = "aiomysql", marker = "extra == 'rdbms'" },
     { name = "aioodbc", marker = "extra == 'rdbms'" },
@@ -945,11 +979,10 @@ requires-dist = [
     { name = "asyncpg", marker = "extra == 'rdbms'" },
     { name = "cassandra-driver", marker = "extra == 'nosql'" },
     { name = "cramjam", marker = "extra == 'handlers'" },
-    { name = "demiurge-testdata", extras = ["handlers", "formats", "rdbms", "nosql", "streaming", "storage", "filetransfer", "api"], marker = "extra == 'all'" },
+    { name = "demiurge-testdata", extras = ["handlers", "formats", "rdbms", "nosql", "streaming", "storage", "filetransfer", "api", "excel"], marker = "extra == 'all'" },
     { name = "elasticsearch", extras = ["async"], marker = "extra == 'nosql'" },
     { name = "fastapi", marker = "extra == 'api'" },
     { name = "fastavro", marker = "extra == 'formats'" },
-    { name = "faststream", extras = ["kafka", "rabbit", "nats"], marker = "extra == 'streaming'" },
     { name = "fsspec", marker = "extra == 'filetransfer'" },
     { name = "fsspec", marker = "extra == 'storage'" },
     { name = "google-cloud-bigquery", marker = "extra == 'rdbms'" },
@@ -958,6 +991,8 @@ requires-dist = [
     { name = "lxml", marker = "extra == 'formats'" },
     { name = "motor", marker = "extra == 'nosql'" },
     { name = "msgspec", marker = "extra == 'handlers'" },
+    { name = "nats-py", marker = "extra == 'streaming'" },
+    { name = "openpyxl", marker = "extra == 'excel'", specifier = ">=3.1" },
     { name = "oracledb", marker = "extra == 'rdbms'" },
     { name = "orjson", marker = "extra == 'handlers'" },
     { name = "paramiko", marker = "extra == 'filetransfer'" },
@@ -978,7 +1013,7 @@ requires-dist = [
     { name = "universal-pathlib", marker = "extra == 'storage'" },
     { name = "uvicorn", marker = "extra == 'api'" },
 ]
-provides-extras = ["handlers", "formats", "rdbms", "nosql", "streaming", "storage", "filetransfer", "api", "all", "dev"]
+provides-extras = ["handlers", "formats", "rdbms", "nosql", "streaming", "storage", "excel", "filetransfer", "api", "all", "dev"]
 
 [[package]]
 name = "dnspython"
@@ -1039,6 +1074,15 @@ async = [
 ]
 
 [[package]]
+name = "et-xmlfile"
+version = "2.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d3/38/af70d7ab1ae9d4da450eeec1fa3918940a5fafb9055e934af8d6eb0c2313/et_xmlfile-2.0.0.tar.gz", hash = "sha256:dab3f4764309081ce75662649be815c4c9081e88f0837825f90fd28317d4da54", size = 17234, upload-time = "2024-10-25T17:25:40.039Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c1/8b/5fe2cc11fee489817272089c4203e679c63b570a5aaeb18d852ae3cbba6a/et_xmlfile-2.0.0-py3-none-any.whl", hash = "sha256:7a91720bc756843502c3b7504c77b8fe44217c85c537d85037f0f536151b2caa", size = 18059, upload-time = "2024-10-25T17:25:39.051Z" },
+]
+
+[[package]]
 name = "faker"
 version = "40.8.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1048,24 +1092,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/70/03/14428edc541467c460d363f6e94bee9acc271f3e62470630fc9a647d0cf2/faker-40.8.0.tar.gz", hash = "sha256:936a3c9be6c004433f20aa4d99095df5dec82b8c7ad07459756041f8c1728875", size = 1956493, upload-time = "2026-03-04T16:18:48.161Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/4c/3b/c6348f1e285e75b069085b18110a4e6325b763a5d35d5e204356fc7c20b3/faker-40.8.0-py3-none-any.whl", hash = "sha256:eb21bdba18f7a8375382eb94fb436fce07046893dc94cb20817d28deb0c3d579", size = 1989124, upload-time = "2026-03-04T16:18:46.45Z" },
-]
-
-[[package]]
-name = "fast-depends"
-version = "3.0.8"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "anyio" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/f8/6d/787a21ca8043a8fdb737cf28f645e94a46fc30b44a31de54573299156bad/fast_depends-3.0.8.tar.gz", hash = "sha256:896b16f79a512b6ea1df721b0aa1708a192a06f964be6597e01fcf5412559101", size = 18382, upload-time = "2026-03-02T19:54:28.649Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/1d/1d/e4843e4eeb65f51447b8c22d200d12d8f94f27c97e77bb7162515cc8d61f/fast_depends-3.0.8-py3-none-any.whl", hash = "sha256:4c52c8a3907bca46d43e70e4364d6d016872d9a3aae4bc0c1c85e72e0a6a21c7", size = 25507, upload-time = "2026-03-02T19:54:27.594Z" },
-]
-
-[package.optional-dependencies]
-pydantic = [
-    { name = "pydantic" },
 ]
 
 [[package]]
@@ -1123,31 +1149,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/a7/1c/6dfd082a205be4510543221b734b1191299e6a1810c452b6bc76dfa6968e/fastavro-1.12.1-cp314-cp314t-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:b6a3462934b20a74f9ece1daa49c2e4e749bd9a35fa2657b53bf62898fba80f5", size = 3433972, upload-time = "2025-10-10T15:42:14.485Z" },
     { url = "https://files.pythonhosted.org/packages/24/90/9de694625a1a4b727b1ad0958d220cab25a9b6cf7f16a5c7faa9ea7b2261/fastavro-1.12.1-cp314-cp314t-musllinux_1_2_aarch64.whl", hash = "sha256:1f81011d54dd47b12437b51dd93a70a9aa17b61307abf26542fc3c13efbc6c51", size = 3368752, upload-time = "2025-10-10T15:42:16.618Z" },
     { url = "https://files.pythonhosted.org/packages/fa/93/b44f67589e4d439913dab6720f7e3507b0fa8b8e56d06f6fc875ced26afb/fastavro-1.12.1-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:43ded16b3f4a9f1a42f5970c2aa618acb23ea59c4fcaa06680bdf470b255e5a8", size = 3386636, upload-time = "2025-10-10T15:42:18.974Z" },
-]
-
-[[package]]
-name = "faststream"
-version = "0.6.7"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "anyio" },
-    { name = "fast-depends", extra = ["pydantic"] },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/19/7b/d02c069be0bc671b2eb8f805a1f824d2bfbe1852c9c3f4ad719a7ad3710b/faststream-0.6.7.tar.gz", hash = "sha256:c732eaf861c4cbddd9c7f9098608486a9f05dff67a72335686c3044039045346", size = 306185, upload-time = "2026-03-01T08:20:27.71Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ba/23/9d51f352fbb656f5345030f57e20737b1c88167f0eac354ac548d577808b/faststream-0.6.7-py3-none-any.whl", hash = "sha256:a904a4b1e3babeaa244a9460821f5b05dd71b00c959c816360b2acbbe267cd5c", size = 513454, upload-time = "2026-03-01T08:20:26.423Z" },
-]
-
-[package.optional-dependencies]
-kafka = [
-    { name = "aiokafka" },
-]
-nats = [
-    { name = "nats-py" },
-]
-rabbit = [
-    { name = "aio-pika" },
 ]
 
 [[package]]
@@ -1987,6 +1988,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/c3/f8/b956c4621ba88748ed707c52e69f95b7a50c8914e750edca59a5bef84a76/nats_py-2.14.0.tar.gz", hash = "sha256:4ed02cb8e3b55c68074a063aa2687087115d805d1513297da90cb2068fb07bed", size = 120751, upload-time = "2026-02-23T22:44:58.988Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f9/39/0e87753df1072254bac190b33ed34b264f28f6aa9bea0f01b7e818071756/nats_py-2.14.0-py3-none-any.whl", hash = "sha256:4116f5d2233ce16e63c3d5538fa40a5e207f75fcf42a741773929ddf1e29d19d", size = 82259, upload-time = "2026-02-23T22:45:00.152Z" },
+]
+
+[[package]]
+name = "openpyxl"
+version = "3.1.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "et-xmlfile" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/3d/f9/88d94a75de065ea32619465d2f77b29a0469500e99012523b91cc4141cd1/openpyxl-3.1.5.tar.gz", hash = "sha256:cf0e3cf56142039133628b5acffe8ef0c12bc902d2aadd3e0fe5878dc08d1050", size = 186464, upload-time = "2024-06-28T14:03:44.161Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c0/da/977ded879c29cbd04de313843e76868e6e13408a94ed6b987245dc7c8506/openpyxl-3.1.5-py2.py3-none-any.whl", hash = "sha256:5282c12b107bffeef825f4617dc029afaf41d0ea60823bbb665ef3079dc79de2", size = 250910, upload-time = "2024-06-28T14:03:41.161Z" },
 ]
 
 [[package]]

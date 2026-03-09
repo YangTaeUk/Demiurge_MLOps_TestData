@@ -1,8 +1,9 @@
-"""SFTPAdapter — asyncssh/paramiko 기반 FileTransfer 어댑터"""
+"""SFTPAdapter — paramiko 기반 FileTransfer 어댑터"""
 
 from __future__ import annotations
 
 import asyncio
+import io
 import os
 from collections.abc import AsyncIterator
 from typing import Any
@@ -24,7 +25,8 @@ class SFTPAdapter(BaseFileTransferAdapter):
 
     def __init__(self, config: FileTransferAdapterConfig | None = None, **kwargs: Any):
         if config is None:
-            config = FileTransferAdapterConfig(port=22, **kwargs)
+            kwargs.setdefault("port", 22)
+            config = FileTransferAdapterConfig(**kwargs)
         self._config = config
         self._transport: paramiko.Transport | None = None
         self._sftp: paramiko.SFTPClient | None = None
@@ -62,23 +64,25 @@ class SFTPAdapter(BaseFileTransferAdapter):
             "key",
             f"{self._config.remote_base_path}/data.bin",
         )
-        # Ensure parent directory exists
-        parent = os.path.dirname(remote_path)
-        if parent:
-            try:
-                await asyncio.to_thread(self._sftp.stat, parent)
-            except FileNotFoundError:
-                await asyncio.to_thread(self._sftp.mkdir, parent)
+        # 상위 디렉토리 재귀 생성
+        await self._ensure_remote_dir(os.path.dirname(remote_path))
 
-        with await asyncio.to_thread(self._sftp.open, remote_path, "wb") as f:
-            await asyncio.to_thread(f.write, data)
+        # paramiko SFTPFile을 스레드에서 열고 쓰기
+        def _write_file() -> None:
+            with self._sftp.open(remote_path, "wb") as f:
+                f.write(data)
+
+        await asyncio.to_thread(_write_file)
 
     async def fetch(self, query: dict[str, Any], limit: int | None = None) -> AsyncIterator[bytes]:
         key = query.get("key")
         if key:
-            with await asyncio.to_thread(self._sftp.open, key, "rb") as f:
-                data = await asyncio.to_thread(f.read)
-                yield data
+            def _read_file() -> bytes:
+                with self._sftp.open(key, "rb") as f:
+                    return f.read()
+
+            data = await asyncio.to_thread(_read_file)
+            yield data
 
     async def health_check(self) -> bool:
         if not self._sftp:
@@ -97,3 +101,26 @@ class SFTPAdapter(BaseFileTransferAdapter):
 
     async def list_files(self, remote_dir: str) -> list[str]:
         return await asyncio.to_thread(self._sftp.listdir, remote_dir)
+
+    async def _ensure_remote_dir(self, path: str) -> None:
+        """원격 디렉토리를 재귀적으로 생성한다."""
+        if not path or path == "/" or path == ".":
+            return
+
+        def _mkdir_p() -> None:
+            dirs_to_create: list[str] = []
+            current = path
+            while current and current not in ("/", "."):
+                try:
+                    self._sftp.stat(current)
+                    break  # 존재하면 중단
+                except (FileNotFoundError, IOError):
+                    dirs_to_create.append(current)
+                    current = os.path.dirname(current)
+            for d in reversed(dirs_to_create):
+                try:
+                    self._sftp.mkdir(d)
+                except IOError:
+                    pass  # 이미 존재하거나 상위 마운트 — 무시
+
+        await asyncio.to_thread(_mkdir_p)

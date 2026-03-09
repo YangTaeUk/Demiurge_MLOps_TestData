@@ -22,7 +22,8 @@ class ElasticsearchAdapter(BaseNoSQLAdapter):
 
     def __init__(self, config: NoSQLAdapterConfig | None = None, **kwargs: Any):
         if config is None:
-            config = NoSQLAdapterConfig(port=9200, **kwargs)
+            kwargs.setdefault("port", 9200)
+            config = NoSQLAdapterConfig(**kwargs)
         self._config = config
         self._client: AsyncElasticsearch | None = None
 
@@ -52,6 +53,7 @@ class ElasticsearchAdapter(BaseNoSQLAdapter):
         await self._client.index(index=index, document=doc)
 
     async def fetch(self, query: dict[str, Any], limit: int | None = None) -> AsyncIterator[bytes]:
+        query = dict(query)  # caller의 dict 변경 방지
         index = query.pop("collection", self._config.collection)
         body: dict[str, Any] = {"query": query} if query else {"query": {"match_all": {}}}
         if limit:

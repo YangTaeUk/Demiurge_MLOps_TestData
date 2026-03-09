@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import time
+import uuid
 from collections.abc import AsyncIterator
 from typing import Any
 
@@ -24,7 +25,8 @@ class RedisAdapter(BaseNoSQLAdapter):
 
     def __init__(self, config: NoSQLAdapterConfig | None = None, **kwargs: Any):
         if config is None:
-            config = NoSQLAdapterConfig(port=6379, **kwargs)
+            kwargs.setdefault("port", 6379)
+            config = NoSQLAdapterConfig(**kwargs)
         self._config = config
         self._client: aioredis.Redis | None = None
 
@@ -44,10 +46,13 @@ class RedisAdapter(BaseNoSQLAdapter):
             await self._client.aclose()
             self._client = None
 
+    # 테스트 데이터 기본 TTL: 24시간 (초)
+    DEFAULT_TTL: int = 86400
+
     async def push(self, data: bytes, metadata: dict[str, Any]) -> None:
         collection = metadata.get("collection", self._config.collection)
-        key = f"{collection}:{int(time.time() * 1000)}"
-        await self._client.set(key, data)
+        key = f"{collection}:{int(time.time() * 1000)}:{uuid.uuid4().hex[:8]}"
+        await self._client.set(key, data, ex=self.DEFAULT_TTL)
 
     async def fetch(self, query: dict[str, Any], limit: int | None = None) -> AsyncIterator[bytes]:
         collection = query.get("collection", self._config.collection)
@@ -73,9 +78,10 @@ class RedisAdapter(BaseNoSQLAdapter):
         if not documents:
             return 0
         pipe = self._client.pipeline()
+        ts = int(time.time() * 1000)
         for i, doc in enumerate(documents):
-            key = f"{collection}:{int(time.time() * 1000)}:{i}"
-            pipe.set(key, json.dumps(doc, default=str).encode("utf-8"))
+            key = f"{collection}:{ts}:{i}:{uuid.uuid4().hex[:8]}"
+            pipe.set(key, json.dumps(doc, default=str).encode("utf-8"), ex=self.DEFAULT_TTL)
         await pipe.execute()
         return len(documents)
 

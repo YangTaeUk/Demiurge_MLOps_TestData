@@ -36,6 +36,8 @@ class FTPAdapter(BaseFileTransferAdapter):
             user=self._config.username,
             password=self._config.password or "",
         )
+        if self._config.passive_mode:
+            self._client.passive_commands = {"stor", "retr", "list", "nlst", "mlsd"}
 
     async def disconnect(self) -> None:
         if self._client:

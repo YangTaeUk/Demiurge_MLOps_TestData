@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query, Security
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
 from demiurge_testdata.core.registry import (
@@ -184,3 +186,48 @@ async def run_pipeline(request: PipelineRequest) -> PipelineResponse:
             status="error",
             errors=[str(e)],
         )
+
+
+# ── Test Data Endpoint (DL 어댑터 통합 테스트용) ──
+
+_bearer = HTTPBearer()
+_TEST_DATA_TOKEN = os.environ.get("TEST_DATA_TOKEN", "test-bearer-token")
+
+
+class TestDataResponse(BaseModel):
+    """공통 스키마 테스트 데이터 응답"""
+
+    total: int
+    offset: int
+    limit: int
+    data: list[dict[str, Any]]
+
+
+def _verify_token(credentials: HTTPAuthorizationCredentials = Security(_bearer)) -> str:
+    if credentials.credentials != _TEST_DATA_TOKEN:
+        raise HTTPException(status_code=401, detail="Invalid bearer token")
+    return credentials.credentials
+
+
+@app.get("/api/test/data", response_model=TestDataResponse)
+async def get_test_data(
+    offset: int = Query(default=0, ge=0, description="시작 위치"),
+    limit: int = Query(default=50, ge=1, le=500, description="반환 건수 (최대 500)"),
+    _token: str = Security(_verify_token),
+) -> TestDataResponse:
+    """공통 스키마(6컬럼) 테스트 데이터를 페이지네이션으로 반환한다.
+
+    Bearer 토큰 인증 필요 (기본값: test-bearer-token, 환경변수 TEST_DATA_TOKEN으로 변경 가능).
+    """
+    from demiurge_testdata.generators.adapter_test import generate_records
+
+    total = 200
+    records = generate_records(total, seed=42)
+    page = records[offset : offset + limit]
+
+    return TestDataResponse(
+        total=total,
+        offset=offset,
+        limit=limit,
+        data=page,
+    )

@@ -18,7 +18,8 @@ class MariaDBAdapter(MySQLAdapter):
 
     def __init__(self, config: RDBMSAdapterConfig | None = None, **kwargs: Any):
         if config is None:
-            config = RDBMSAdapterConfig(port=3307, **kwargs)
+            kwargs.setdefault("port", 3307)
+            config = RDBMSAdapterConfig(**kwargs)
         super().__init__(config=config)
 
     @property

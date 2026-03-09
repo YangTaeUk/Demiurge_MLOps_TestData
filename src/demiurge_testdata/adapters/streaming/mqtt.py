@@ -21,7 +21,8 @@ class MQTTAdapter(BaseStreamAdapter):
 
     def __init__(self, config: StreamAdapterConfig | None = None, **kwargs: Any):
         if config is None:
-            config = StreamAdapterConfig(port=1883, **kwargs)
+            kwargs.setdefault("port", 1883)
+            config = StreamAdapterConfig(**kwargs)
         self._config = config
         self._client: aiomqtt.Client | None = None
         self._connected = False

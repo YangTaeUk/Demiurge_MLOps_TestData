@@ -23,7 +23,8 @@ class MySQLAdapter(BaseRDBMSAdapter):
 
     def __init__(self, config: RDBMSAdapterConfig | None = None, **kwargs: Any):
         if config is None:
-            config = RDBMSAdapterConfig(port=3306, **kwargs)
+            kwargs.setdefault("port", 3306)
+            config = RDBMSAdapterConfig(**kwargs)
         self._config = config
         self._engine = None
         self._pool: aiomysql.Pool | None = None
@@ -47,6 +48,7 @@ class MySQLAdapter(BaseRDBMSAdapter):
             db=self._config.database,
             minsize=1,
             maxsize=self._config.pool_size,
+            init_command="SET SESSION sql_mode = ''",
         )
 
     async def disconnect(self) -> None:
